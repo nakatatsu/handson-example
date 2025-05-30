@@ -25,6 +25,9 @@ wsl --install -d Ubuntu-24.04
 同梱のrestrict_wsl_mount.sh の内容をコピペするなどして取得し、実行してください。作業用ディレクトリが作成されるほか、Cドライブ全体がマウントされないようになるはずです。
 
 ```
+# コピペするなどして保存
+vi restrict_wsl_mount.sh
+
 # 内容を確認し
 cat restrict_wsl_mount.sh
 
@@ -103,7 +106,7 @@ aws sso login
 git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
 
-# ご自身のトークンを
+# ご自身のトークンでログインください
 gh auth login
 
 cd $HOME/repositories/handson-claude-code
