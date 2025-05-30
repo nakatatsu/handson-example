@@ -1,0 +1,52 @@
+resources:
+  - name: Lambda Function
+    requirements:
+      - Python 3.12ランタイムを使用すること
+      - 環境名とプロジェクト名を含む命名規則に従うこと
+      - 最小限のメモリ構成で開始し、必要に応じて調整可能にすること
+      - タイムアウトは適切に設定し、Function URLsのタイムアウト制限を考慮すること
+      - 環境変数を通じて設定を注入できるようにすること
+    prohibitions:
+      - VPC内に配置してはいけない
+      - 予約済み同時実行数を設定してはいけない
+      - プロビジョニング済み同時実行を設定してはいけない
+  - name: Lambda Function URL
+    requirements:
+      - 認証タイプはNONEに設定し、パブリックアクセスを許可すること
+    prohibitions: []
+  - name: IAM Role
+    requirements:
+      - Lambda実行に必要な最小限の権限のみを付与すること
+      - CloudWatchログの書き込み権限を含めること
+    prohibitions:
+      - 過度に広範な権限を付与してはいけない
+      - アスタリスク（*）を用いた無制限のリソースアクセスは避けること
+  - name: IAM Policy
+    requirements:
+      - CloudWatch Logsへの書き込み権限を最小限の範囲で付与すること
+      - 特定のロググループに対してのみ権限を付与すること
+      - ポリシードキュメントは最小権限の原則に従うこと
+    prohibitions:
+      - ワイルドカード（*）を使用した広範なリソース指定は避けること
+      - 不要なアクションを含めてはいけない
+  - name: CloudWatch Log Group
+    requirements:
+      - Lambda関数のログを保存すること
+      - ログの保持期間を適切に設定すること
+      - 環境に応じた保持期間を設定可能にすること
+    prohibitions:
+      - 無期限のログ保持は設定してはいけない
+  - name: Lambda Deployment Package
+    requirements:
+      - シンプルなPythonコードでHello World APIを実装すること
+      - HTTPリクエストを適切に処理し、JSON形式で応答すること
+    prohibitions:
+      - 外部依存関係を含めてはいけない（標準ライブラリのみ使用）
+variables:
+  - environment: 環境名（dev, stg, prod等）
+  - project: プロジェクト名
+outputs:
+  - なし
+notes:
+  - Function URLsを使用することでAPI Gatewayなしに直接HTTPSエンドポイントを提供
+  - ハンズオン用のため、シンプルな構成を採用
