@@ -1,0 +1,8 @@
+module_code_generation:
+  prompt: TerraformコードをHCL形式で生成してください。
+  constraints:
+    - モジュール仕様書に定義されていないリソースを追加してはいけません。
+  completion_criteria:
+    - 指定されたリソースがすべて含まれている。
+    - モジュール仕様書に定義された内容と齟齬がない。
+    - 生成されたコードがdocuments/coding_guidline.yamlのdevelopment_guidelines.coding_standardsに準拠している。

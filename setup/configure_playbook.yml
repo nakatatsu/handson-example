@@ -1,0 +1,212 @@
+- name: 開発ツール一式を導入する（Ubuntu 24.04 専用）
+  hosts: localhost
+  vars:
+    terraform_version: "1.12.1"
+    terraform_docs_version: "v0.20.0"
+    nvm_version: "v0.40.3"
+    nvm_dir: "{{ ansible_env.HOME }}/.nvm"
+
+  pre_tasks:
+    - name: Ubuntu 24.04 以外では停止
+      assert:
+        that:
+          - ansible_distribution == "Ubuntu"
+          - ansible_distribution_version is version('24.04', '==')
+        fail_msg: "このプレイブックは Ubuntu 24.04 でのみ使用できます。"
+
+  tasks:
+    - name: apt パッケージリストの更新とアップグレード
+      apt:
+        update_cache: yes
+        upgrade: yes
+      become: true
+
+    - name: 必要パッケージをインストール
+      apt:
+        name:
+          - curl
+          - unzip
+          - wget
+          - python3-pip
+          - tar
+        state: present
+      become: true
+
+    - name: AWS CLI v2 をダウンロード
+      get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+        mode: "0644"
+
+    - name: AWS CLI v2 を展開
+      unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp
+        remote_src: yes
+
+    - name: AWS CLI v2 をインストール
+      command: ./aws/install --update
+      args:
+        chdir: /tmp
+      become: true
+    - name: Terraform {{ terraform_version }} をダウンロード
+      get_url:
+        url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_linux_amd64.zip"
+        dest: "/tmp/terraform_{{ terraform_version }}.zip"
+        mode: "0644"
+
+    - name: Terraform を展開
+      unarchive:
+        src: "/tmp/terraform_{{ terraform_version }}.zip"
+        dest: /tmp
+        remote_src: yes
+        creates: /tmp/terraform
+
+    - name: Terraform バイナリを配置
+      copy:
+        src: /tmp/terraform
+        dest: /usr/local/bin/terraform
+        remote_src: yes
+        mode: "0755"
+      become: true
+    - name: tflint をインストール
+      shell: |
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+      args:
+        creates: /usr/local/bin/tflint
+      become: true
+    - name: pipx をインストール(checkov用)
+      apt:
+        name: pipx
+        state: present
+      become: true
+    - name: pipx の PATH を有効化
+      shell: pipx ensurepath
+      changed_when: false
+
+    - name: checkov をインストール (pipx)
+      shell: pipx install --include-deps checkov
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/pipx/venvs/checkov"
+
+    - name: terraform-docs をダウンロード
+      get_url:
+        url: "https://github.com/terraform-docs/terraform-docs/releases/download/{{ terraform_docs_version }}/terraform-docs-{{ terraform_docs_version }}-linux-amd64.tar.gz"
+        dest: /tmp/terraform-docs.tar.gz
+        mode: "0644"
+
+    - name: terraform-docs を展開
+      unarchive:
+        src: /tmp/terraform-docs.tar.gz
+        dest: /tmp
+        remote_src: yes
+        creates: /tmp/terraform-docs
+
+    - name: terraform-docs バイナリを配置
+      copy:
+        src: /tmp/terraform-docs
+        dest: /usr/local/bin/terraform-docs
+        remote_src: yes
+        mode: "0755"
+      become: true
+
+    - name: nvm をインストール
+      shell: |
+        export NVM_DIR="{{ nvm_dir }}"
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_version }}/install.sh | bash
+        . "{{ nvm_dir }}/nvm.sh"
+      args:
+        creates: "{{ nvm_dir }}"
+
+    - name: Node.js v24をインストール
+      shell: |
+        export NVM_DIR="{{ nvm_dir }}"
+        [ -s "{{ nvm_dir }}/nvm.sh" ] && \. "{{ nvm_dir }}/nvm.sh"
+        nvm install 24
+        nvm alias default 24
+      args:
+        creates: "{{ ansible_env.HOME }}/.nvm/versions/node/v24*"
+        executable: /bin/bash
+
+    - name: claude-code をインストール
+      shell: |
+        export NVM_DIR="{{ nvm_dir }}"
+        [ -s "{{ nvm_dir }}/nvm.sh" ] && \. "{{ nvm_dir }}/nvm.sh"
+        npm install -g @anthropic-ai/claude-code
+      args:
+        creates: "{{ nvm_dir }}/versions/node/*/lib/node_modules/@anthropic-ai/claude-code"
+
+    - name: GitHub CLI (gh) をインストール
+      apt:
+        name: gh
+        state: present
+      become: true
+
+    - name: ripgrep をインストール
+      apt:
+        name: ripgrep
+        state: present
+      become: true
+
+
+    # -----------------------------------------------------------------------
+    # ----- バージョン確認 ----------------------------------------------------
+    # -----------------------------------------------------------------------
+    - name: AWS CLI のバージョンを確認
+      shell: aws --version 2>&1
+      register: aws_version
+      changed_when: false
+
+    - name: Terraform のバージョンを確認
+      shell: terraform -version
+      register: tf_version
+      changed_when: false
+
+    - name: tflint のバージョンを確認
+      shell: tflint --version
+      register: tflint_version
+      changed_when: false
+
+    - name: checkov のバージョンを確認
+      become: no
+      shell: ~/.local/bin/checkov --version
+      register: checkov_version
+      changed_when: false
+
+    - name: terraform-docs のバージョンを確認
+      shell: terraform-docs --version
+      register: tfdocs_version
+      changed_when: false
+
+    - name: Node と npm のバージョンを確認
+      become: no
+      shell: |
+        . "{{ nvm_dir }}/nvm.sh"
+        echo "node: $(node -v)"
+        echo "npm : $(npm -v)"
+      register: node_info
+      changed_when: false
+
+    - name: gh のバージョンを確認
+      shell: gh --version
+      register: gh_version
+      changed_when: false
+
+    - name: ripgrep のバージョンを確認
+      shell: rg --version
+      register: rg_version
+      changed_when: false
+
+
+    - name: インストール済みツールのバージョン一覧
+      debug:
+        msg: |
+          AWS CLI          : {{ aws_version.stdout | default(aws_version.stderr) }}
+          Terraform        : {{ tf_version.stdout }}
+          tflint           : {{ tflint_version.stdout }}
+          checkov          : {{ checkov_version.stdout }}
+          terraform-docs   : {{ tfdocs_version.stdout }}
+          Node / npm       : {{ node_info.stdout }}
+          gh               : {{ gh_version.stdout }}
+          ripgrep          : {{ rg_version.stdout }}
+

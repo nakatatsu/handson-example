@@ -1,0 +1,76 @@
+module_specification:
+  pronpt: モジュール仕様書を作成してください。
+  constraints:
+    - "内容は設計意図や目的を主に記載します。具体的な設定値はなるべく記載せず、どうしても必要な場合に限り用いてください。(e.g., good: 低額なarm64系インスタンスを選択すること bad: t4g.nanoを用いること)"
+    - README.mdに記載された要件および開発ガイドラインに基づいて記載してください。
+    - キー名・型・順序を変更してはいけません
+    - 値に改行やコーテーションが必要な場合は YAML として正しくエスケープしてください
+    - 空リストは [] で示してください
+    - 不要な説明を出力してはいけません
+    - 複数要素がある場合は同じ構造を複写して展開してください
+    - コードフェンスは\```yaml\ \```\以外利用してはいけません
+  completion_criteria:
+    - 要件の網羅性: モジュール要件に含まれるリソースがすべて記載されている。
+    - ポリシー準拠性: インフラ設計ポリシーに完全に準拠している。
+    - 出力形式の遵守: 指定されたテンプレートに基づいて記載されている。
+  output_format:
+    template: |
+      ```yaml
+      resources:
+        - name: [ resource_1_name ]
+          requirements:
+            - [ resource_1_requirement_1 ]
+          prohibitions:
+            - [ resource_1_prohibition_1 ]
+
+        - name: [ resource_2_name ]
+          requirements:
+            - [ resource_2_requirement_1 ]
+          prohibitions: []
+
+      variables:
+        - [ key ]: [ value ]
+
+      outputs:
+        - [ key ]: [ value ]
+
+      notes:
+        - [ note_1 ]
+      ```
+
+    example_output: |
+      ```yaml
+      resources:
+        - name: ECS Cluster
+          requirements:
+            - 環境名とプロジェクト名を用いること
+          prohibitions: []
+
+        - name: ECS Service
+          requirements:
+            - 本番環境では最低2台、それ以外の環境では最低1台で、CPU負荷に応じてスケーリングさせること
+            - サーバーレス（Fargate）を利用すること
+          prohibitions:
+            - Public Subnetに配置してはならない
+
+        - name: ECS Task Definition
+          requirements:
+            - 軽量なタスクを用いること
+            - awsvpcモードを採用すること
+          prohibitions: []
+
+        - name: ALB
+          requirements:
+            - 環境名とプロジェクト名を用いること
+          prohibitions: []
+
+      variables:
+        - environment: 環境情報
+        - project: プロジェクト名
+
+      outputs:
+        - alb_arn: ALBのARN
+
+      notes:
+        - 特になし
+      ```

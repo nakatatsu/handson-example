@@ -1,0 +1,60 @@
+
+module_requirements:
+  prompt: モジュールの概要説明書([module_name]/README.md)を更新してください。
+  constraints:
+    - 各セクションのタイトルは見出し記号（`##`）付きで記載してください。
+    - セクション内の項目はリスト形式で記載してください。
+  completion_criteria:
+    - 目的、期待する作業、禁止事項の3項目を有すること
+    - 提供された情報に基づいて、出力形式を満たすMarkdownドキュメントが生成されていること。
+    - 各セクションの内容が論理的かつ誤りなく記載されていること。
+  structure:
+    name: モジュール名を記載(English only)
+    format: markdown
+    sections:
+      - title: 目的
+        content: モジュールのゴールを記載
+      - title: 期待すること
+        content: 実現したい物事を記載
+      - title: 禁止事項
+        content: してはいけない事項を記載
+  output_format:
+    template: |
+      ```markdown
+      # {{  }} モジュール 概要説明書
+
+      ## 目的
+      - [モジュールのゴールを記載]
+
+      ## 期待すること
+      - [内容1]
+      - [内容2]
+
+      ## 禁止事項
+      - [禁止事項1]
+      - [禁止事項2]
+
+
+      <!-- BEGIN_TF_DOCS -->
+
+      <!-- END_TF_DOCS -->
+      ```
+    example_output: |
+      ```markdown
+      # Example モジュール 概要説明書
+
+      ## 目的
+      - REST APIを動作させるためのインフラをAWS上で構築する
+
+      ## 期待すること
+      - 全世界からアクセスできること
+      - コンテナをAWS Fargate上で動作させられること
+
+      ## 禁止事項
+      - VPCを作成してはいけない
+      - デプロイの仕組みを含めてはいけない
+
+      <!-- BEGIN_TF_DOCS -->
+
+      <!-- END_TF_DOCS -->
+      

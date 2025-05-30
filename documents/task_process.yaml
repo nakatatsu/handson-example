@@ -1,0 +1,56 @@
+task_process_standard:
+  - name: 1. 作業用ブランチの作成
+    steps:
+      - "作業内容に応じた適切なブランチ名を決める（例：`feat/add-new-module`）"
+      - "`git checkout -b [ブランチ名]`を実行して新しいブランチを作成する"
+  - name: 2. モジュールのスケルトンを作成する
+    steps:
+      - "`make prepare handson`を実行"
+  - name: 3. モジュールの概要説明書([module_name]/README.md)を更新する。
+    steps:
+      - モジュールの目的がプロンプトで与えられている。もし与えられていなかったら必ず聞き返す。
+      - モジュールの目的とdocuments/module_requirements.yamlに基づいて、モジュールの概要説明書([module_name]/README.md)を更新する。
+      - 更新したら確認を求める
+  - name: 4. モジュール仕様書([module_name]/specification.yaml)を更新する
+    steps:
+      - モジュールの概要説明書、documents/module_specification.yamlに基づいて、モジュール仕様書([module_name]/specification.yaml)を更新する。
+      - 更新したら確認を求める
+  - name: 5. Terraform用コードを生成する
+    steps:
+      - モジュールの概要説明書、モジュール仕様書、documents/module_code.yamlに基づいて、モジュール内にコードを生成する
+  - name: 6. terraform.tfvars.jsonを更新する
+    steps:
+      - モジュールに必要な変数を[module_name]/terraform.tfvars.jsonに記載する
+  - name: 7. terraform fmt
+    steps:
+      - "`[module_name]/`に移動し、`terraform fmt`を実行する。"
+  - name: 8. terraform init
+    steps:
+      - "`[module_name]/`に移動し、`terraform init`を実行する。"
+      - エラーがあれば修正しリトライ。エラーがゼロになるまで次に進まないこと
+  - name: 9. terraform validate
+    steps:
+      - "`[module_name]/`に移動し、`terraform validate`を実行する。"
+      - エラーがあれば修正しリトライ。エラーがゼロになるまで次に進まないこと
+  - name: 10. tflint
+    steps:
+      - "``[module_name]/`に移動し、tflint --init --config [repository_root]/.tflint.hcl`を実行する。"
+      - "`tflint --recursive --config [repository_root]/.tflint.hcl`を実行する。"
+      - エラーがあれば修正しリトライ。エラーがゼロになるまで次に進まないこと
+  - name: 11. checkov
+    steps:
+      - "``[module_name]/`に移動し、checkov -d . --config-file [repository_root]/.checkov.yml `を実行する。"
+      - エラーがあれば修正しリトライ。エラーがゼロになるまで次に進まないこと
+  - name: 12. terraform plan
+    steps:
+      - "`[module_name]/`に移動し、terraform planを実行する。"
+      - エラーがあれば修正しリトライ。エラーがゼロになるまで次に進まないこと
+  - name: 13. terraform-docs
+    steps:
+      - "`[module_name]/`に移動し、`terraform-docs markdown . --output-file README.md`を実行する。"
+  - name: 14. 変更をコミットしてプルリクエストを作成
+    steps:
+      - "変更をコミットする（`git add . && git commit -m 'feat: [モジュール名] の実装'`）"
+      - "ブランチをプッシュする（`git push origin [ブランチ名]`）"
+      - "GitHubのウェブインターフェースでプルリクエストを作成する"
+      - "レビュアーをアサインし、適切なラベルを設定する"

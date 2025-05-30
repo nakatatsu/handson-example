@@ -1,0 +1,4 @@
+quiet: true
+
+skip-check:
+  - CKV_AWS_158   # Ensure that CloudWatch Log Group is encrypted by KMS.
