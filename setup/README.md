@@ -75,7 +75,7 @@ wsl --shutdown
 wsl -e /bin/true
 ```
 
-## 初期設定を行う
+## 🐧 初期設定を行う
 
 ### AWS
 
